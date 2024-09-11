@@ -5,13 +5,21 @@ import com.lbry.database.revert.RevertibleOperation;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.revert.RevertiblePut;
 import com.lbry.database.rows.*;
-import org.rocksdb.*;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import org.rocksdb.ColumnFamilyDescriptor;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.DBOptions;
+import org.rocksdb.Options;
+import org.rocksdb.ReadOptions;
+import org.rocksdb.RocksDB;
+import org.rocksdb.RocksDBException;
+import org.rocksdb.RocksIterator;
 
 /**
  * Class for a revertible RocksDB database: A RocksDB database where each set of applied changes can be undone.
