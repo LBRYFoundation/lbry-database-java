@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RevertibleOperationStack{
 
@@ -417,6 +418,14 @@ public class RevertibleOperationStack{
         this.items.clear();
         this.stash.clear();
         this.stashedLastOperationForKey.clear();
+    }
+
+    public int length(){
+        return this.items.values().stream().mapToInt(x -> x.length).sum();
+    }
+
+    public Iterable<RevertibleOperation> interate(){
+        return this.items.values().stream().flatMap(Stream::of).collect(Collectors.toList());
     }
 
     /**
