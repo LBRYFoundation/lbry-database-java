@@ -7,10 +7,7 @@ import com.lbry.database.revert.RevertiblePut;
 import com.lbry.database.rows.*;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
@@ -103,7 +100,20 @@ public class PrefixDB{
 
         this.database = RocksDB.open(new DBOptions(options),path,columnFamilyDescriptors,this.columnFamilyHandles);
 
-        this.operationStack = new RevertibleOperationStack();
+        Set<Byte> unsafePrefixes = new HashSet<>();//TODO
+        boolean enforceIntegrity = false;//TODO
+        this.operationStack = new RevertibleOperationStack((byte[] key) -> {
+            try{
+                return Optional.of(this.get(key));
+            }catch(RocksDBException e){}
+            return Optional.empty();
+        },(List<byte[]> keys) -> {
+            List<Optional<byte[]>> optionalKeys = new ArrayList<>();
+            for(byte[] key : keys){
+                optionalKeys.add(Optional.of(key));
+            }
+            return optionalKeys;
+        },unsafePrefixes,enforceIntegrity);
 
         this.maxUndoDepth = maxUndoDepth;
 

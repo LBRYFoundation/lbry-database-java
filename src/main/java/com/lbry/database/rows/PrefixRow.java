@@ -5,6 +5,7 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.KeyInterface;
 import com.lbry.database.values.ValueInterface;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +18,13 @@ import org.rocksdb.RocksIterator;
 
 public abstract class PrefixRow<K extends KeyInterface,V extends ValueInterface>{
 
+    public static final Map<Prefix,PrefixRow<?,?>> TYPES = new HashMap<>();
+
     private final PrefixDB database;
 
     public PrefixRow(PrefixDB database){
         this.database = database;
+        PrefixRow.TYPES.put(this.prefix(),this);
     }
 
     public RocksIterator iterate() throws RocksDBException{

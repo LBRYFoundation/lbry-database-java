@@ -62,4 +62,17 @@ public enum Prefix{
         return this.value;
     }
 
+    public static Prefix getByValue(char value){
+        return Prefix.getByValue((byte) value);
+    }
+
+    public static Prefix getByValue(byte value){
+        for(Prefix p : Prefix.values()){
+            if(p.value==value){
+                return p;
+            }
+        }
+        return null;
+    }
+
 }
