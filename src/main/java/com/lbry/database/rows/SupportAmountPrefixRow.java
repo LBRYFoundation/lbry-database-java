@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.SupportAmountKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.SupportAmountValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class SupportAmountPrefixRow extends PrefixRow<SupportAmountKey,SupportAmountValue>{
 
-    public SupportAmountPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public SupportAmountPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

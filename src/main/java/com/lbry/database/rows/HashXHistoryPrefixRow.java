@@ -5,15 +5,18 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.HashXHistoryKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.HashXHistoryValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.List;
 
 public class HashXHistoryPrefixRow extends PrefixRow<HashXHistoryKey,HashXHistoryValue>{
 
-    public HashXHistoryPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public HashXHistoryPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

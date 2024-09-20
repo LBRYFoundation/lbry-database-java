@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.UndoKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.UndoValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class UndoPrefixRow extends PrefixRow<UndoKey,UndoValue>{
 
-    public UndoPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public UndoPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

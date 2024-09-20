@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ClaimToSupportKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ClaimToSupportValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class ClaimToSupportPrefixRow extends PrefixRow<ClaimToSupportKey,ClaimToSupportValue>{
 
-    public ClaimToSupportPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public ClaimToSupportPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

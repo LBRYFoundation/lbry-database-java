@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.TrendingNotificationKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.TrendingNotificationValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class TrendingNotificationPrefixRow extends PrefixRow<TrendingNotificationKey,TrendingNotificationValue>{
 
-    public TrendingNotificationPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public TrendingNotificationPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

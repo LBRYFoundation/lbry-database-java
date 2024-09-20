@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.MempoolTxKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.MempoolTxValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class MempoolTXPrefixRow extends PrefixRow<MempoolTxKey,MempoolTxValue>{
 
-    public MempoolTXPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public MempoolTXPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

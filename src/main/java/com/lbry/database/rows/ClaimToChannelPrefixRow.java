@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ClaimToChannelKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ClaimToChannelValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class ClaimToChannelPrefixRow extends PrefixRow<ClaimToChannelKey,ClaimToChannelValue>{
 
-    public ClaimToChannelPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public ClaimToChannelPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

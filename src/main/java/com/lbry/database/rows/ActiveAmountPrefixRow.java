@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ActiveAmountKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ActiveAmountValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class ActiveAmountPrefixRow extends PrefixRow<ActiveAmountKey,ActiveAmountValue>{
 
-    public ActiveAmountPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public ActiveAmountPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

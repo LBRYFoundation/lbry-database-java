@@ -5,15 +5,18 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.TouchedHashXKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.TouchedHashXValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.List;
 
 public class TouchedHashXPrefixRow extends PrefixRow<TouchedHashXKey,TouchedHashXValue>{
 
-    public TouchedHashXPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public TouchedHashXPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

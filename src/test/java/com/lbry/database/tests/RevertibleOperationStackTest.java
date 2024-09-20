@@ -78,11 +78,11 @@ public class RevertibleOperationStackTest {
         ClaimToTXOKey k1 = new ClaimToTXOKey();
         k1.claim_hash = new byte[20];
         Arrays.fill(k1.claim_hash,(byte) 0x01);
-        byte[] key1 = new ClaimToTXOPrefixRow(null,null).packKey(k1);
+        byte[] key1 = new ClaimToTXOPrefixRow(null,null,null).packKey(k1);
         ClaimToTXOKey k2 = new ClaimToTXOKey();
         k2.claim_hash = new byte[20];
         Arrays.fill(k2.claim_hash,(byte) 0x02);
-        byte[] key2 = new ClaimToTXOPrefixRow(null,null).packKey(k2);
+        byte[] key2 = new ClaimToTXOPrefixRow(null,null,null).packKey(k2);
 //        ClaimToTXOKey k3 = new ClaimToTXOKey();
 //        k3.claim_hash = new byte[20];
 //        Arrays.fill(k3.claim_hash,(byte) 0x03);
@@ -100,7 +100,7 @@ public class RevertibleOperationStackTest {
         v1.amount = 1;
         v1.channel_signature_is_valid = false;
         v1.name = "derp";
-        byte[] val1 = new ClaimToTXOPrefixRow(null,null).packValue(v1);
+        byte[] val1 = new ClaimToTXOPrefixRow(null,null,null).packValue(v1);
         ClaimToTXOValue v2 = new ClaimToTXOValue();
         v2.tx_num = 1;
         v2.position = 0;
@@ -109,7 +109,7 @@ public class RevertibleOperationStackTest {
         v2.amount = 1;
         v2.channel_signature_is_valid = false;
         v2.name = "oops";
-        byte[] val2 = new ClaimToTXOPrefixRow(null,null).packValue(v2);
+        byte[] val2 = new ClaimToTXOPrefixRow(null,null,null).packValue(v2);
         ClaimToTXOValue v3 = new ClaimToTXOValue();
         v3.tx_num = 1;
         v3.position = 0;
@@ -118,7 +118,7 @@ public class RevertibleOperationStackTest {
         v3.amount = 1;
         v3.channel_signature_is_valid = false;
         v3.name = "other";
-        byte[] val3 = new ClaimToTXOPrefixRow(null,null).packValue(v3);
+        byte[] val3 = new ClaimToTXOPrefixRow(null,null,null).packValue(v3);
 
         // Check that we can't delete a non-existent value.
         assertThrows(OperationStackIntegrityException.class,() -> this.stack.appendOperation(new RevertibleDelete(key1,val1)));

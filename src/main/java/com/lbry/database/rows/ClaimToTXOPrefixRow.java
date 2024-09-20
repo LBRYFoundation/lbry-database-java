@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ClaimToTXOKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ClaimToTXOValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class ClaimToTXOPrefixRow extends PrefixRow<ClaimToTXOKey,ClaimToTXOValue>{
 
-    public ClaimToTXOPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public ClaimToTXOPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

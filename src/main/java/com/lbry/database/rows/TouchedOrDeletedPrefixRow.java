@@ -5,15 +5,18 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.TouchedOrDeletedClaimKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.TouchedOrDeletedClaimValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 public class TouchedOrDeletedPrefixRow extends PrefixRow<TouchedOrDeletedClaimKey,TouchedOrDeletedClaimValue>{
 
-    public TouchedOrDeletedPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public TouchedOrDeletedPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

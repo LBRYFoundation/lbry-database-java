@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ClaimExpirationKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ClaimExpirationValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class ClaimExpirationPrefixRow extends PrefixRow<ClaimExpirationKey,ClaimExpirationValue>{
 
-    public ClaimExpirationPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public ClaimExpirationPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

@@ -59,9 +59,9 @@ public class RevertablePrefixDBTest{
         assertNull(this.database.claim_takeover.get(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }}));
-        assertEquals(10000000,this.database.claim_takeover.getPending(new ClaimTakeoverKey(){{
+        assertEquals(10000000,((ClaimTakeoverValue)this.database.claim_takeover.getPending(new ClaimTakeoverKey(){{
             this.normalized_name = name;
-        }}).height);
+        }})).height);
 
         /////////////////////
 

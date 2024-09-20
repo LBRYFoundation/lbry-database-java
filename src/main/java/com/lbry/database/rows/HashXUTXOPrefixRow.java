@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.HashXUTXOKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.HashXUTXOValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class HashXUTXOPrefixRow extends PrefixRow<HashXUTXOKey,HashXUTXOValue>{
 
-    public HashXUTXOPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public HashXUTXOPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override

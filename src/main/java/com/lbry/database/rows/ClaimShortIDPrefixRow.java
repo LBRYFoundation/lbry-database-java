@@ -5,14 +5,17 @@ import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ClaimShortIDKey;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ClaimShortIDValue;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDB;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class ClaimShortIDPrefixRow extends PrefixRow<ClaimShortIDKey,ClaimShortIDValue>{
 
-    public ClaimShortIDPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
-        super(database,operationStack);
+    public ClaimShortIDPrefixRow(RocksDB database, RevertibleOperationStack operationStack, List<ColumnFamilyHandle> columnFamilyHandleList){
+        super(database,operationStack,columnFamilyHandleList);
     }
 
     @Override
