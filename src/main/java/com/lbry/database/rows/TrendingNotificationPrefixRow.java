@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.TrendingNotificationKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.TrendingNotificationValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class TrendingNotificationPrefixRow extends PrefixRow<TrendingNotificationKey,TrendingNotificationValue>{
 
-    public TrendingNotificationPrefixRow(PrefixDB database){
-        super(database);
+    public TrendingNotificationPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

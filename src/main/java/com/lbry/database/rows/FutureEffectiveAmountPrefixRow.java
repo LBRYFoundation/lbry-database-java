@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.FutureEffectiveAmountKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.FutureEffectiveAmountValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class FutureEffectiveAmountPrefixRow extends PrefixRow<FutureEffectiveAmountKey,FutureEffectiveAmountValue>{
 
-    public FutureEffectiveAmountPrefixRow(PrefixDB database){
-        super(database);
+    public FutureEffectiveAmountPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

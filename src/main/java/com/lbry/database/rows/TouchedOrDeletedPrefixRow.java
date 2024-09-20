@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.TouchedOrDeletedClaimKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.TouchedOrDeletedClaimValue;
 
 import java.nio.ByteBuffer;
@@ -11,8 +12,8 @@ import java.util.LinkedHashSet;
 
 public class TouchedOrDeletedPrefixRow extends PrefixRow<TouchedOrDeletedClaimKey,TouchedOrDeletedClaimValue>{
 
-    public TouchedOrDeletedPrefixRow(PrefixDB database){
-        super(database);
+    public TouchedOrDeletedPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

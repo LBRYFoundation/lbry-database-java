@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.KeyInterface;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.DBState;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class DBStatePrefixRow extends PrefixRow<KeyInterface,DBState>{
 
-    public DBStatePrefixRow(PrefixDB database){
-        super(database);
+    public DBStatePrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

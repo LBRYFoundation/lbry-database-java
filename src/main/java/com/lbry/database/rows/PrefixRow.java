@@ -3,12 +3,11 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.KeyInterface;
+import com.lbry.database.revert.RevertibleOperation;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ValueInterface;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.rocksdb.ColumnFamilyHandle;
@@ -21,9 +20,11 @@ public abstract class PrefixRow<K extends KeyInterface,V extends ValueInterface>
     public static final Map<Prefix,PrefixRow<?,?>> TYPES = new HashMap<>();
 
     private final PrefixDB database;
+    private final RevertibleOperationStack operationStack;
 
-    public PrefixRow(PrefixDB database){
+    public PrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
         this.database = database;
+        this.operationStack = operationStack;
         PrefixRow.TYPES.put(this.prefix(),this);
     }
 
@@ -75,13 +76,7 @@ public abstract class PrefixRow<K extends KeyInterface,V extends ValueInterface>
         }).collect(Collectors.toList());
     }
 
-    public void stashMultiDelete(Map<K,V> items){
-        Map<byte[],byte[]> map = new LinkedHashMap<>();
-        for(Map.Entry<K,V> entry : items.entrySet()){
-            map.put(this.packKey(entry.getKey()),this.packValue(entry.getValue()));
-        }
-        this.database.multiDelete(map);
-    }
+    //TODO multiGetAsyncGen
 
     public void stashMultiPut(Map<K,V> items){
         Map<byte[],byte[]> map = new LinkedHashMap<>();
@@ -91,12 +86,46 @@ public abstract class PrefixRow<K extends KeyInterface,V extends ValueInterface>
         this.database.multiPut(map);
     }
 
-    public void stashDelete(K key,V value){
-        this.database.stashRawDelete(this.packKey(key),this.packValue(value));
+    public void stashMultiDelete(Map<K,V> items){
+        Map<byte[],byte[]> map = new LinkedHashMap<>();
+        for(Map.Entry<K,V> entry : items.entrySet()){
+            map.put(this.packKey(entry.getKey()),this.packValue(entry.getValue()));
+        }
+        this.database.multiDelete(map);
     }
+
+    public V getPending(K key){
+        return this.getPending(key,true);
+    }
+
+    public V getPending(K key,boolean fillCache){
+        return this.getPending(key,fillCache,true);
+    }
+
+    public V getPending(K key,boolean fillCache,boolean deserializeValue){
+//        byte[] packedKey = this.packKey(key);
+//        Optional<RevertibleOperation> pendingOperation = this.operationStack.getPendingOperation(packedKey);
+//        if(pendingOperation.isPresent() && pendingOperation.get().isDelete()){
+//            return null;
+//        }
+//        byte[] v;
+//        if(pendingOperation.isPresent()){
+//            v = pendingOperation.get().getValue();
+//        }else{
+//            v = this.database.get(this.getColumnFamily(),fillCache);
+//        }
+        return null;
+    }
+
+    //TODO getPending
 
     public void stashPut(K key,V value){
         this.database.stashRawPut(this.packKey(key),this.packValue(value));
+    }
+
+
+    public void stashDelete(K key,V value){
+        this.database.stashRawDelete(this.packKey(key),this.packValue(value));
     }
 
     public ColumnFamilyHandle getColumnFamily() throws RocksDBException{

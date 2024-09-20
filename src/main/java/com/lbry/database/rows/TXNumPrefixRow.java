@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.TxNumKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.TxNumValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class TXNumPrefixRow extends PrefixRow<TxNumKey,TxNumValue>{
 
-    public TXNumPrefixRow(PrefixDB database){
-        super(database);
+    public TXNumPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

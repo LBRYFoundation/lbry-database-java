@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.BlockTxsKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.BlockTxsValue;
 
 import java.nio.ByteBuffer;
@@ -11,8 +12,8 @@ import java.util.ArrayList;
 
 public class BlockTxsPrefixRow extends PrefixRow<BlockTxsKey,BlockTxsValue>{
 
-    public BlockTxsPrefixRow(PrefixDB database){
-        super(database);
+    public BlockTxsPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

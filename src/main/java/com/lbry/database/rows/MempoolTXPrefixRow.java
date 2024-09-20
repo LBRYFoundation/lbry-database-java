@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.MempoolTxKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.MempoolTxValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class MempoolTXPrefixRow extends PrefixRow<MempoolTxKey,MempoolTxValue>{
 
-    public MempoolTXPrefixRow(PrefixDB database){
-        super(database);
+    public MempoolTXPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

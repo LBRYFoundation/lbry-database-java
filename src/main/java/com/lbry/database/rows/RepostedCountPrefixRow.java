@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.RepostedCountKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.RepostedCountValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class RepostedCountPrefixRow extends PrefixRow<RepostedCountKey,RepostedCountValue>{
 
-    public RepostedCountPrefixRow(PrefixDB database){
-        super(database);
+    public RepostedCountPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ClaimTakeoverKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ClaimTakeoverValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class ClaimTakeoverPrefixRow extends PrefixRow<ClaimTakeoverKey,ClaimTakeoverValue>{
 
-    public ClaimTakeoverPrefixRow(PrefixDB database){
-        super(database);
+    public ClaimTakeoverPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

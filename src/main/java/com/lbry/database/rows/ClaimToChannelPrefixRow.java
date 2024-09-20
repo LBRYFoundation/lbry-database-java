@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ClaimToChannelKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ClaimToChannelValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class ClaimToChannelPrefixRow extends PrefixRow<ClaimToChannelKey,ClaimToChannelValue>{
 
-    public ClaimToChannelPrefixRow(PrefixDB database){
-        super(database);
+    public ClaimToChannelPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

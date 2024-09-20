@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.HashXHistoryHasherKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.HashXHistoryHasherValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class HashXHistoryHasherPrefixRow extends PrefixRow<HashXHistoryHasherKey,HashXHistoryHasherValue>{
 
-    public HashXHistoryHasherPrefixRow(PrefixDB database){
-        super(database);
+    public HashXHistoryHasherPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

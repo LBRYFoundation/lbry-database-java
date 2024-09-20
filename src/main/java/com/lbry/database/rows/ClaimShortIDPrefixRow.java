@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ClaimShortIDKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ClaimShortIDValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class ClaimShortIDPrefixRow extends PrefixRow<ClaimShortIDKey,ClaimShortIDValue>{
 
-    public ClaimShortIDPrefixRow(PrefixDB database){
-        super(database);
+    public ClaimShortIDPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

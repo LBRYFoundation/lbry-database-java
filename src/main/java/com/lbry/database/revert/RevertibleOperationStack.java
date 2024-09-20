@@ -85,7 +85,7 @@ public class RevertibleOperationStack{
         if(this.enforceIntegrity && !uniqueKeys.isEmpty()){
             List<byte[]> uniqueKeysList = new ArrayList<>(uniqueKeys);
             for(int idx=0;idx<uniqueKeys.size();idx+=10000){
-                List<byte[]> batch = uniqueKeysList.subList(idx,idx+10000);
+                List<byte[]> batch = uniqueKeysList.subList(idx,Math.min(uniqueKeysList.size(),idx+10000));
                 Iterator<Optional<byte[]>> iterator = this.multiGet.apply(batch).iterator();
                 for(byte[] k : batch){
                     byte[] v = iterator.next().get();

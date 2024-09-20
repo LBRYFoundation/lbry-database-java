@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ActivationKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ActivationValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class ActivatedPrefixRow extends PrefixRow<ActivationKey,ActivationValue>{
 
-    public ActivatedPrefixRow(PrefixDB database){
-        super(database);
+    public ActivatedPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

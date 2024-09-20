@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.TXOToClaimKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.TXOToClaimValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class TXOToClaimPrefixRow extends PrefixRow<TXOToClaimKey, TXOToClaimValue>{
 
-    public TXOToClaimPrefixRow(PrefixDB database){
-        super(database);
+    public TXOToClaimPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

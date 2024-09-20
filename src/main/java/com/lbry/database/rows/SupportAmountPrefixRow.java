@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.SupportAmountKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.SupportAmountValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class SupportAmountPrefixRow extends PrefixRow<SupportAmountKey,SupportAmountValue>{
 
-    public SupportAmountPrefixRow(PrefixDB database){
-        super(database);
+    public SupportAmountPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

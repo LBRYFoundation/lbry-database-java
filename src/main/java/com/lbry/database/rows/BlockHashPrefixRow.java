@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.BlockHashKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.BlockHashValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class BlockHashPrefixRow extends PrefixRow<BlockHashKey,BlockHashValue>{
 
-    public BlockHashPrefixRow(PrefixDB database){
-        super(database);
+    public BlockHashPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

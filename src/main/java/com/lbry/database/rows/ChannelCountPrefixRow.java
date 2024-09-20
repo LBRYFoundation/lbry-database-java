@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.ChannelCountKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.ChannelCountValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class ChannelCountPrefixRow extends PrefixRow<ChannelCountKey,ChannelCountValue>{
 
-    public ChannelCountPrefixRow(PrefixDB database){
-        super(database);
+    public ChannelCountPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

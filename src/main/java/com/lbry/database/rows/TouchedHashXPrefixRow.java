@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.TouchedHashXKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.TouchedHashXValue;
 
 import java.nio.ByteBuffer;
@@ -11,8 +12,8 @@ import java.util.ArrayList;
 
 public class TouchedHashXPrefixRow extends PrefixRow<TouchedHashXKey,TouchedHashXValue>{
 
-    public TouchedHashXPrefixRow(PrefixDB database){
-        super(database);
+    public TouchedHashXPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

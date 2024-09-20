@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.SupportToClaimKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.SupportToClaimValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class SupportToClaimPrefixRow extends PrefixRow<SupportToClaimKey,SupportToClaimValue>{
 
-    public SupportToClaimPrefixRow(PrefixDB database){
-        super(database);
+    public SupportToClaimPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

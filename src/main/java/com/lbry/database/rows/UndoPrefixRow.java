@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.UndoKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.UndoValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class UndoPrefixRow extends PrefixRow<UndoKey,UndoValue>{
 
-    public UndoPrefixRow(PrefixDB database){
-        super(database);
+    public UndoPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override

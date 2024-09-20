@@ -3,6 +3,7 @@ package com.lbry.database.rows;
 import com.lbry.database.Prefix;
 import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.HashXUTXOKey;
+import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.HashXUTXOValue;
 
 import java.nio.ByteBuffer;
@@ -10,8 +11,8 @@ import java.nio.ByteOrder;
 
 public class HashXUTXOPrefixRow extends PrefixRow<HashXUTXOKey,HashXUTXOValue>{
 
-    public HashXUTXOPrefixRow(PrefixDB database){
-        super(database);
+    public HashXUTXOPrefixRow(PrefixDB database,RevertibleOperationStack operationStack){
+        super(database,operationStack);
     }
 
     @Override
