@@ -28,6 +28,10 @@ public abstract class RevertibleOperation{
         return this.value;
     }
 
+    public boolean isPut(){
+        return this.isPut;
+    }
+
     public boolean isDelete(){
         return !this.isPut;
     }
@@ -74,13 +78,13 @@ public abstract class RevertibleOperation{
 
     @Override
     public String toString() {
-        Prefix prefix = Prefix.getByValue(this.value[0]);
+        Prefix prefix = Prefix.getByValue(this.key[0]);
         String prefixStr = (prefix!=null?prefix.name():"?");
         String k = "?";
         String v = "?";
         if(prefix!=null){
             k = PrefixRow.TYPES.get(prefix).unpackKey(this.key).toString();
-            v = PrefixRow.TYPES.get(prefix).unpackKey(this.value).toString();
+            v = PrefixRow.TYPES.get(prefix).unpackValue(this.value).toString();
         }
         return (this.isPut?"PUT":"DELETE")+" "+prefixStr+": "+k+" | "+v;
     }

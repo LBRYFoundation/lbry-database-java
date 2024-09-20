@@ -2,10 +2,9 @@ package com.lbry.database.revert;
 
 public class RevertiblePut extends RevertibleOperation{
 
-    protected boolean isPut = true;
-
     public RevertiblePut(byte[] key,byte[] value){
         super(key,value);
+        this.isPut = true;
     }
 
     @Override

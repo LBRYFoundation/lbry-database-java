@@ -170,7 +170,7 @@ public class PrefixDB{
                 return;
             }
             WriteBatch batch = new WriteBatch();
-            for(RevertibleOperation stagedChange : this.operationStack.interate()){
+            for(RevertibleOperation stagedChange : this.operationStack.iterate()){
                 ColumnFamilyHandle columnFamily = this.getColumnFamilyByPrefix(Prefix.getByValue(stagedChange.getKey()[0]));
                 if(!stagedChange.isDelete()){
                     batch.put(columnFamily,stagedChange.getKey(),stagedChange.getValue());
@@ -203,7 +203,7 @@ public class PrefixDB{
             WriteOptions writeOptions = new WriteOptions().setSync(true);
             try{
                 WriteBatch batch = new WriteBatch();
-                for(RevertibleOperation stagedChange : this.operationStack.interate()){
+                for(RevertibleOperation stagedChange : this.operationStack.iterate()){
                     ColumnFamilyHandle columnFamily = this.getColumnFamilyByPrefix(Prefix.getByValue(stagedChange.getKey()[0]));
                     if(!stagedChange.isDelete()){
                         batch.put(columnFamily,stagedChange.getKey(),stagedChange.getValue());
@@ -242,7 +242,7 @@ public class PrefixDB{
         WriteOptions writeOptions = new WriteOptions().setSync(true);
         try{
             WriteBatch batch = new WriteBatch();
-            for(RevertibleOperation stagedChange : this.operationStack.interate()){
+            for(RevertibleOperation stagedChange : this.operationStack.iterate()){
                 ColumnFamilyHandle columnFamily = this.getColumnFamilyByPrefix(Prefix.getByValue(stagedChange.getKey()[0]));
                 if(!stagedChange.isDelete()){
                     batch.put(columnFamily,stagedChange.getKey(),stagedChange.getValue());

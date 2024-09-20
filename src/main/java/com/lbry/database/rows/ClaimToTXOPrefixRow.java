@@ -40,7 +40,7 @@ public class ClaimToTXOPrefixRow extends PrefixRow<ClaimToTXOKey,ClaimToTXOValue
     public byte[] packValue(ClaimToTXOValue value) {
         byte[] strBytes = value.name.getBytes();
 
-        return ByteBuffer.allocate(4+2+4+2+8+1)
+        return ByteBuffer.allocate(4+2+4+2+8+1+2+strBytes.length)
                 .order(ByteOrder.BIG_ENDIAN)
                 .putInt(value.tx_num)
                 .putShort(value.position)

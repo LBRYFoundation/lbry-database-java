@@ -1,7 +1,10 @@
 package com.lbry.database.revert;
 
+import com.lbry.database.util.MapHelper;
 import com.lbry.database.util.Tuple2;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Function;
@@ -21,6 +24,14 @@ public class RevertibleOperationStack{
     private final Set<Byte> unsafePrefixes;
 
     private final boolean enforceIntegrity;
+
+    public RevertibleOperationStack(Function<byte[],Optional<byte[]>> get,Function<List<byte[]>,Iterable<Optional<byte[]>>> multiGet){
+        this(get,multiGet,null);
+    }
+
+    public RevertibleOperationStack(Function<byte[],Optional<byte[]>> get,Function<List<byte[]>,Iterable<Optional<byte[]>>> multiGet,Set<Byte> unsafePrefixes){
+        this(get,multiGet,unsafePrefixes,true);
+    }
 
     public RevertibleOperationStack(Function<byte[],Optional<byte[]>> get,Function<List<byte[]>,Iterable<Optional<byte[]>>> multiGet,Set<Byte> unsafePrefixes,boolean enforceIntegrity){
         this.get = get;
@@ -179,18 +190,23 @@ public class RevertibleOperationStack{
         this.stashedLastOperationForKey.clear();
     }
 
+    /**
+     * Apply a put or delete op, checking that it introduces no integrity errors.
+     * @param operation The revertible operation
+     */
     public void appendOperation(RevertibleOperation operation){
         RevertibleOperation inverted = operation.invert();
 
-        RevertibleOperation[] operationArr = null;
-        for(Map.Entry<byte[],RevertibleOperation[]> e : this.items.entrySet()){
-            if(Arrays.equals(e.getKey(),operation.getKey())){
-                operationArr = e.getValue();
-            }
-        }
+        RevertibleOperation[] operationArr = MapHelper.getValue(this.items,operation.getKey());
         if(operationArr!=null && operationArr.length>=1 && inverted.equals(operationArr[operationArr.length-1])){
+            // If the new op is the inverse of the last op, we can safely null both.
             this.items.put(operationArr[0].getKey(),Arrays.copyOfRange(operationArr,0,operationArr.length-1));
+            return;
+        }else if(operationArr!=null && operationArr.length>=1 && operationArr[operationArr.length-1].equals(operation)){
+            // Duplicate of last operation.
+            return; // Raise an error?
         }
+
         Optional<byte[]> storedValue = this.get.apply(operation.getKey());
         boolean hasStoredValue = storedValue.isPresent();
         RevertibleOperation deleteStoredOperation = hasStoredValue?new RevertibleDelete(operation.getKey(),storedValue.get()):null;
@@ -231,7 +247,10 @@ public class RevertibleOperationStack{
                 operationArrX = e.getValue();
             }
         }
-        RevertibleOperation[] newArr = new RevertibleOperation[operationArrX==null?0:operationArrX.length];
+        RevertibleOperation[] newArr = new RevertibleOperation[operationArrX==null?1:operationArrX.length+1];
+        if(operationArrX!=null){
+            System.arraycopy(operationArrX,0,newArr,0,operationArrX.length);
+        }
         newArr[newArr.length-1] = operation;
         this.items.put(newArr[0].getKey(),newArr);
     }
@@ -424,7 +443,7 @@ public class RevertibleOperationStack{
         return this.items.values().stream().mapToInt(x -> x.length).sum();
     }
 
-    public Iterable<RevertibleOperation> interate(){
+    public Iterable<RevertibleOperation> iterate(){
         return this.items.values().stream().flatMap(Stream::of).collect(Collectors.toList());
     }
 
@@ -433,23 +452,21 @@ public class RevertibleOperationStack{
      */
     public byte[] getUndoOperations(){
         List<RevertibleOperation> reversed = new ArrayList<>();
-        for(Map.Entry<byte[],RevertibleOperation[]> e : this.items.entrySet()){
-            List<RevertibleOperation> operations = Arrays.asList(e.getValue());
-            Collections.reverse(operations);
-            reversed.addAll(operations);
+        for(RevertibleOperation operation : this.iterate()){
+            reversed.add(operation);
         }
-        List<byte[]> invertedAndPacked = new ArrayList<>();
-        int size = 0;
+        Collections.reverse(reversed);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
         for(RevertibleOperation operation : reversed){
-            byte[] undoOperation = operation.invert().pack();
-            invertedAndPacked.add(undoOperation);
-            size += undoOperation.length;
+            try{
+                baos.write(operation.invert().pack());
+            }catch(IOException e){
+                e.printStackTrace();
+            }
         }
-        ByteBuffer bb = ByteBuffer.allocate(size);
-        for(byte[] packed : invertedAndPacked){
-            bb.put(packed);
-        }
-        return bb.array();
+        return baos.toByteArray();
     }
 
     /**
@@ -459,7 +476,9 @@ public class RevertibleOperationStack{
     public void applyPackedUndoOperations(byte[] packed){
         while(packed.length>0){
             Tuple2<RevertibleOperation,byte[]> unpacked = RevertibleOperation.unpack(packed);
-            this.appendOperation(unpacked.getA());
+            this.stash.add(unpacked.getA());
+            byte[] savedKey = MapHelper.getKey(this.stashedLastOperationForKey,unpacked.getA().getKey());
+            this.stashedLastOperationForKey.put(savedKey!=null?savedKey:unpacked.getA().getKey(),unpacked.getA());
             packed = unpacked.getB();
         }
     }
