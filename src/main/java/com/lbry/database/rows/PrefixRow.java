@@ -45,8 +45,8 @@ public abstract class PrefixRow<K extends KeyInterface,V extends ValueInterface>
 
     public abstract Prefix prefix();
 
-    public RocksIterator iterate() throws RocksDBException{
-        return this.iterate(null);
+    public RocksIterator iterate(){
+        return this.database.newIterator(this.columnFamily);
     }
 
     //TODO
