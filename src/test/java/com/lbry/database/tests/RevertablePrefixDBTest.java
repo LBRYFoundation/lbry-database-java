@@ -1,19 +1,33 @@
 package com.lbry.database.tests;
 
 import com.lbry.database.PrefixDB;
-import com.lbry.database.keys.*;
+import com.lbry.database.keys.ActiveAmountKey;
+import com.lbry.database.keys.ClaimExpirationKey;
+import com.lbry.database.keys.ClaimTakeoverKey;
+import com.lbry.database.keys.KeyInterface;
+import com.lbry.database.keys.TxNumKey;
 import com.lbry.database.util.ArrayHelper;
-import com.lbry.database.values.*;
+import com.lbry.database.values.ActiveAmountValue;
+import com.lbry.database.values.ClaimExpirationValue;
+import com.lbry.database.values.ClaimTakeoverValue;
+import com.lbry.database.values.TxNumValue;
+import com.lbry.database.values.DBState;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.function.BiFunction;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
@@ -33,19 +47,21 @@ public class RevertablePrefixDBTest{
     }
 
     @AfterAll
-    public void tearDown(){}
+    public void tearDown(){
+        this.database.close();
+        this.tmpDir.deleteOnExit();
+    }
 
-
-    @Disabled
+    
     @Test
     public void testRollback() throws RocksDBException{
         String name = "derp";
-        byte[] claim_hash1 = new byte[20];
-        Arrays.fill(claim_hash1, (byte) 0x00);
-        byte[] claim_hash2 = new byte[20];
-        Arrays.fill(claim_hash2, (byte) 0x01);
-        byte[] claim_hash3 = new byte[20];
-        Arrays.fill(claim_hash3, (byte) 0x02);
+        byte[] claimHash1 = new byte[20];
+        Arrays.fill(claimHash1, (byte) 0x00);
+        byte[] claimHash2 = new byte[20];
+        Arrays.fill(claimHash2, (byte) 0x01);
+        byte[] claimHash3 = new byte[20];
+        Arrays.fill(claimHash3, (byte) 0x02);
 
         int takeoverHeight = 10000000;
 
@@ -55,7 +71,7 @@ public class RevertablePrefixDBTest{
         this.database.claim_takeover.stashPut(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }},new ClaimTakeoverValue(){{
-            this.claim_hash = claim_hash1;
+            this.claim_hash = claimHash1;
             this.height = takeoverHeight;
         }});
         assertNull(this.database.claim_takeover.get(new ClaimTakeoverKey(){{
@@ -65,31 +81,27 @@ public class RevertablePrefixDBTest{
             this.normalized_name = name;
         }})).height);
 
-        /////////////////////
-
         this.database.commit(10000000,ArrayHelper.fill(new byte[32],(byte) 0x00));
         assertEquals(10000000,((ClaimTakeoverValue)this.database.claim_takeover.get(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }})).height);
 
-        /////////////////////
-
         this.database.claim_takeover.stashDelete(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }},new ClaimTakeoverValue(){{
-            this.claim_hash = claim_hash1;
+            this.claim_hash = claimHash1;
             this.height = takeoverHeight;
         }});
         this.database.claim_takeover.stashPut(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }},new ClaimTakeoverValue(){{
-            this.claim_hash = claim_hash2;
+            this.claim_hash = claimHash2;
             this.height = takeoverHeight + 1;
         }});
         this.database.claim_takeover.stashDelete(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }},new ClaimTakeoverValue(){{
-            this.claim_hash = claim_hash2;
+            this.claim_hash = claimHash2;
             this.height = takeoverHeight + 1;
         }});
         this.database.commit(10000001,ArrayHelper.fill(new byte[32],(byte) 0x01));
@@ -99,7 +111,7 @@ public class RevertablePrefixDBTest{
         this.database.claim_takeover.stashPut(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }},new ClaimTakeoverValue(){{
-            this.claim_hash = claim_hash3;
+            this.claim_hash = claimHash3;
             this.height = takeoverHeight + 2;
         }});
         this.database.commit(10000002,ArrayHelper.fill(new byte[32],(byte) 0x02));
@@ -107,26 +119,22 @@ public class RevertablePrefixDBTest{
             this.normalized_name = name;
         }})).height);
 
-        /////////////////////
-
         this.database.claim_takeover.stashDelete(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }},new ClaimTakeoverValue(){{
-            this.claim_hash = claim_hash3;
+            this.claim_hash = claimHash3;
             this.height = takeoverHeight + 2;
         }});
         this.database.claim_takeover.stashPut(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }},new ClaimTakeoverValue(){{
-            this.claim_hash = claim_hash2;
+            this.claim_hash = claimHash2;
             this.height = takeoverHeight + 3;
         }});
         this.database.commit(10000003,ArrayHelper.fill(new byte[32],(byte) 0x03));
         assertEquals(10000003,((ClaimTakeoverValue)this.database.claim_takeover.get(new ClaimTakeoverKey(){{
             this.normalized_name = name;
         }})).height);
-
-        /////////////////////
 
         this.database.rollback(10000003,ArrayHelper.fill(new byte[32],(byte) 0x03));
         assertEquals(10000002,((ClaimTakeoverValue)this.database.claim_takeover.get(new ClaimTakeoverKey(){{
@@ -224,7 +232,7 @@ public class RevertablePrefixDBTest{
             this.genesis = new byte[]{'n','?',(byte) 0xcf,0x12,(byte) 0x99,(byte) 0xd4,(byte) 0xec,']','y',(byte) 0xc3,(byte) 0xa4,(byte) 0xc9,0x1d,'b','J','J',(byte) 0xcf,(byte) 0x9e,'.',0x17,'=',(byte) 0x95,(byte) 0xa1,(byte) 0xa0,'P','O','g','v','i','h','u','V'};
             this.height = 0;
             this.tx_count = 1;
-            this.tip = new byte[32]; //TODO
+            this.tip = new byte[]{'V','u','h','i','v','g','O','P',(byte) 0xa0,(byte) 0xa1,(byte) 0x95,'=',0x17,'.',(byte) 0x9e,(byte) 0xcf,'J','J','b',0x1d,(byte) 0xc9,(byte) 0xa4,(byte) 0xc3,'y',']',(byte) 0xec,(byte) 0xd4,(byte) 0x99,0x12,(byte) 0xcf,'?','n'};
             this.utxo_flush_count = 1;
             this.wall_time = 0;
             this.bit_fields = 1;
@@ -251,10 +259,11 @@ public class RevertablePrefixDBTest{
                 }
                 iterator.next();
             }
+            iterator.close();
             assertEquals(0,actualMap.size());
         }
-        //TODO (start=98 & stop=99) vs (prefix=98)
-        //TODO (start=99 & stop=100) vs (prefix=99)
+        //TODO: (start=98 & stop=99) vs (prefix=98)
+        //TODO: (start=99 & stop=100) vs (prefix=99)
         {
             Map<byte[],byte[]> expectedMap = new HashMap<>();
             expectedMap.put(this.database.claim_expiration.packKey(new ClaimExpirationKey(){{
@@ -283,6 +292,7 @@ public class RevertablePrefixDBTest{
                 assertArrayEquals(expectedEntry.getKey(),actualEntry.getKey());
                 assertArrayEquals(expectedEntry.getValue(),actualEntry.getValue());
             }
+            iterator.close();
         }
         {
             Map<byte[],byte[]> expectedMap = new HashMap<>();
@@ -304,12 +314,12 @@ public class RevertablePrefixDBTest{
             }}));
             Map<byte[],byte[]> actualMap = new HashMap<>();
             RocksIterator iterator = this.database.claim_expiration.iterate();
-            iterator.seekToLast();
+            iterator.seekToFirst();
             while(iterator.isValid()){
                 if(this.database.claim_expiration.unpackKey(iterator.key()).expiration==100){
                     actualMap.put(iterator.key(),iterator.value());
                 }
-                iterator.prev(); // ?
+                iterator.next();
             }
             assertEquals(expectedMap.size(),actualMap.size());
             Iterator<Map.Entry<byte[],byte[]>> expectedEntrySetIterator = expectedMap.entrySet().iterator();
@@ -320,6 +330,7 @@ public class RevertablePrefixDBTest{
                 assertArrayEquals(expectedEntry.getKey(),actualEntry.getKey());
                 assertArrayEquals(expectedEntry.getValue(),actualEntry.getValue());
             }
+            iterator.close();
         }
         //TODO (start=100 & stop=101) vs (prefix=100)
         {
@@ -350,6 +361,7 @@ public class RevertablePrefixDBTest{
                 assertArrayEquals(expectedEntry.getKey(),actualEntry.getKey());
                 assertArrayEquals(expectedEntry.getValue(),actualEntry.getValue());
             }
+            iterator.close();
         }
         {
             Map<byte[],byte[]> expectedMap = new HashMap<>();
@@ -379,6 +391,7 @@ public class RevertablePrefixDBTest{
                 assertArrayEquals(expectedEntry.getKey(),actualEntry.getKey());
                 assertArrayEquals(expectedEntry.getValue(),actualEntry.getValue());
             }
+            iterator.close();
         }
     }
 

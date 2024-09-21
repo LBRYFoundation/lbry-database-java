@@ -45,8 +45,9 @@ public abstract class BasePrefixDB{
         this.operationStack = new RevertibleOperationStack((byte[] key) -> {
             try{
                 return Optional.of(this.get(key));
-            }catch(RocksDBException e){}
-            return Optional.empty();
+            }catch(RocksDBException e){
+                return Optional.empty();
+            }
         },(List<byte[]> keys) -> {
             List<Optional<byte[]>> optionalKeys = new ArrayList<>();
             for(byte[] key : keys){
@@ -78,8 +79,9 @@ public abstract class BasePrefixDB{
                 }else{
                     batch.delete(columnFamily,stagedChange.getKey());
                 }
-                this.database.write(writeOptions,batch);
             }
+            this.database.write(writeOptions,batch);
+            batch.close();
         }finally{
             writeOptions.close();
             this.operationStack.clear();
@@ -92,41 +94,40 @@ public abstract class BasePrefixDB{
         List<byte[]> deleteUndos = new ArrayList<>();
         if(height>this.maxUndoDepth){
             byte[] upperBound = ByteBuffer.allocate(1+8).order(ByteOrder.BIG_ENDIAN).put(Prefix.UNDO.getValue()).putLong(height-this.maxUndoDepth).array();
-            RocksIterator iterator = this.database.newIterator(new ReadOptions().setIterateUpperBound(new Slice(upperBound)));
+            ReadOptions readOptions = new ReadOptions().setIterateUpperBound(new Slice(upperBound));
+            RocksIterator iterator = this.database.newIterator(readOptions);
             iterator.seek(ByteBuffer.allocate(1+8).order(ByteOrder.BIG_ENDIAN).put(Prefix.UNDO.getValue()).array());
             while(iterator.isValid()){
                 deleteUndos.add(iterator.key());
                 iterator.next();
             }
+            readOptions.close();
         }
+        WriteOptions writeOptions = new WriteOptions().setSync(true);
         try{
             ColumnFamilyHandle undoColumnFamily = this.getColumnFamilyByPrefix(Prefix.UNDO);
-            WriteOptions writeOptions = new WriteOptions().setSync(true);
-            try{
-                WriteBatch batch = new WriteBatch();
-                for(RevertibleOperation stagedChange : this.operationStack.iterate()){
-                    ColumnFamilyHandle columnFamily = this.getColumnFamilyByPrefix(Prefix.getByValue(stagedChange.getKey()[0]));
-                    if(!stagedChange.isDelete()){
-                        batch.put(columnFamily,stagedChange.getKey(),stagedChange.getValue());
-                    }else{
-                        batch.delete(columnFamily,stagedChange.getKey());
-                    }
+            WriteBatch batch = new WriteBatch();
+            for(RevertibleOperation stagedChange : this.operationStack.iterate()){
+                ColumnFamilyHandle columnFamily = this.getColumnFamilyByPrefix(Prefix.getByValue(stagedChange.getKey()[0]));
+                if(!stagedChange.isDelete()){
+                    batch.put(columnFamily,stagedChange.getKey(),stagedChange.getValue());
+                }else{
+                    batch.delete(columnFamily,stagedChange.getKey());
+                }
 
-                }
-                for(byte[] undoToDelete : deleteUndos){
-                    batch.delete(undoColumnFamily,undoToDelete);
-                }
-                UndoKey undoKey = new UndoKey();
-                undoKey.height = height;
-                undoKey.block_hash = blockHash;
-                byte[] undoKeyBytes = ((PrefixDB)this).undo.packKey(undoKey);
-                batch.put(undoColumnFamily,undoKeyBytes,undoOperations);
-                this.database.write(writeOptions,batch);
-            }finally{
-                writeOptions.close();
-                this.operationStack.clear();
             }
+            for(byte[] undoToDelete : deleteUndos){
+                batch.delete(undoColumnFamily,undoToDelete);
+            }
+            final long batchHeight = height;
+            batch.put(undoColumnFamily,((PrefixDB)this).undo.packKey(new UndoKey(){{
+                this.block_hash = blockHash;
+                this.height = batchHeight;
+            }}),undoOperations);
+            this.database.write(writeOptions,batch);
+            batch.close();
         }finally{
+            writeOptions.close();
             this.operationStack.clear();
         }
     }

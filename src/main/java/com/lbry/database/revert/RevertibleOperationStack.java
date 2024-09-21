@@ -1,5 +1,6 @@
 package com.lbry.database.revert;
 
+import com.lbry.database.util.ArrayHelper;
 import com.lbry.database.util.MapHelper;
 import com.lbry.database.util.Tuple2;
 
@@ -53,7 +54,6 @@ public class RevertibleOperationStack{
     }
 
     public void validateAndApplyStashedOperations(){
-//        System.err.println("STASH = "+this.stash);
         if(this.stash.isEmpty()){
             return;
         }
@@ -68,8 +68,7 @@ public class RevertibleOperationStack{
             if(operationArr!=null && operationArr.length>=1 && operation.invert().equals(operationArr[operationArr.length-1])){
                 this.items.replace(operationArr[0].getKey(),Arrays.copyOfRange(operationArr,0,operationArr.length-1));
                 continue;
-            }
-            if(operationArr!=null && operationArr.length>=1 && operation.equals(operationArr[operationArr.length-1])){
+            }else if(operationArr!=null && operationArr.length>=1 && operation.equals(operationArr[operationArr.length-1])){
                 continue;
             }else{
                 needAppend.add(operation);
@@ -78,63 +77,37 @@ public class RevertibleOperationStack{
         }
 
         Map<byte[],byte[]> existing = new HashMap<>();
-//        if(this.enforceIntegrity && !uniqueKeys.isEmpty()){
-//            List<byte[]> uniqueKeysList = new ArrayList<>(uniqueKeys);
-//            for(int idx=0;idx<uniqueKeys.size();idx+=10000){
-//                List<byte[]> batch = uniqueKeysList.subList(idx,Math.min(uniqueKeysList.size(),idx+10000));
-//                Iterator<Optional<byte[]>> iterator = this.multiGet.apply(batch).iterator();
-//                for(byte[] k : batch){
-//                    byte[] v = iterator.next().get();
-//                    System.err.println(new RevertiblePut(k,v));
-//                    existing.put(k,v);
-//                }
-//
-//            }
-//        }
+        if(this.enforceIntegrity && !uniqueKeys.isEmpty()){
+            List<byte[]> uniqueKeysList = new ArrayList<>(uniqueKeys);
+            for(int idx=0;idx<uniqueKeys.size();idx+=10000){
+                List<byte[]> batch = uniqueKeysList.subList(idx,Math.min(uniqueKeysList.size(),idx+10000));
+                Iterator<Optional<byte[]>> iterator = this.multiGet.apply(batch).iterator();
+                for(byte[] k : batch){
+                    Optional<byte[]> vOpt = iterator.next();
+                    vOpt.ifPresent(bytes -> existing.put(k, bytes));
+                }
+
+            }
+        }
 
         for(RevertibleOperation operation : needAppend){
-            RevertibleOperation[] operationArr = MapHelper.getValue(this.items,operation.key);
-//            System.err.println("@ "+operation+ " vs "+Arrays.toString(operationArr));
+            RevertibleOperation[] operationArr = MapHelper.getValue(this.items,operation.getKey());
             if(operationArr!=null && operationArr.length>=1 && operationArr[operationArr.length-1].equals(operation)){
+                this.items.put(MapHelper.getKey(this.items,operation.getKey()),ArrayHelper.pop(MapHelper.getValue(this.items,operation.getKey())));
                 RevertibleOperation[] operationArr2 = MapHelper.getValue(this.items,operation.getKey());
-                List<RevertibleOperation> operationList = Arrays.asList(operationArr2!=null?operationArr2:new RevertibleOperation[0]);
-                if(!operationList.isEmpty()){
-                    operationList.remove(operationList.size()-1);
-                }
-                if(operationList.isEmpty()){
+                if(operationArr2==null || operationArr2.length==0){
                     MapHelper.remove(this.items,operation.getKey());
-                    continue;
                 }
             }
             if(!this.enforceIntegrity){
-                RevertibleOperation[] operationArr2 = MapHelper.getValue(this.items,operation.getKey());
-                List<RevertibleOperation> operationList = Arrays.asList(operationArr2!=null?operationArr2:new RevertibleOperation[0]);
-                operationList.add(operation);
-                this.items.put(operationList.get(0).getKey(),operationList.toArray(new RevertibleOperation[0]));
+                byte[] newKey = MapHelper.getKey(this.items,operation.getKey());
+                this.items.put(newKey,ArrayHelper.append(MapHelper.getValue(this.items,newKey),operation));
+                continue;
             }
-
-            RevertibleOperation[] operationArrX = null;
-            for(Map.Entry<byte[],RevertibleOperation[]> e : this.items.entrySet()){
-                if(Arrays.equals(e.getKey(),operation.getKey())){
-                    operationArrX = e.getValue();
-                }
-            }
-
             byte[] storedValue = MapHelper.getValue(existing,operation.getKey());
-//            System.err.println(operation);
             boolean hasStoredValue = storedValue!=null;
-            RevertibleOperation deleteStoredOperation = hasStoredValue?new RevertibleDelete(operation.getKey(),storedValue):null;
-            boolean deleteStoredOperationInOperationList = false;
-            if(operationArr!=null){
-                for(RevertibleOperation o : operationArr){
-                    if(o.equals(deleteStoredOperation)){
-                        deleteStoredOperationInOperationList = true;
-                        break;
-                    }
-                }
-            }
-            boolean willDeleteExistingRecord = deleteStoredOperation!=null && deleteStoredOperationInOperationList;
-
+            RevertibleOperation deleteStoredOperation = !hasStoredValue?null:new RevertibleDelete(operation.getKey(),storedValue);
+            boolean willDeleteExistingRecord = deleteStoredOperation!=null && (MapHelper.getValue(this.items,operation.getKey())!=null);
             try{
                 if(operation.isDelete()){
                     if(hasStoredValue && !Arrays.equals(storedValue,operation.value) && !willDeleteExistingRecord){
@@ -167,10 +140,8 @@ public class RevertibleOperationStack{
                     throw e;
                 }
             }
-
-            RevertibleOperation[] newArr = new RevertibleOperation[operationArrX==null?1:operationArrX.length+1];
-            newArr[newArr.length-1] = operation;
-            this.items.put(newArr[0].getKey(),newArr);
+            byte[] newKey = MapHelper.getKey(this.items,operation.getKey());
+            this.items.put(newKey,ArrayHelper.append(MapHelper.getValue(this.items,newKey),operation));
         }
 
         this.stashedLastOperationForKey.clear();
