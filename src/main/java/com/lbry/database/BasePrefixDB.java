@@ -67,7 +67,7 @@ public abstract class BasePrefixDB{
         this.applyStash();
         WriteOptions writeOptions = new WriteOptions().setSync(true);
         try{
-            if(this.operationStack.length()!=0){
+            if(this.operationStack.length()==0){
                 return;
             }
             WriteBatch batch = new WriteBatch();

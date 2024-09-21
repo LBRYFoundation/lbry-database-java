@@ -1,20 +1,31 @@
 package com.lbry.database.tests;
 
 import com.lbry.database.PrefixDB;
+import com.lbry.database.keys.ActiveAmountKey;
 import com.lbry.database.keys.ClaimTakeoverKey;
+import com.lbry.database.revert.RevertibleOperation;
+import com.lbry.database.revert.RevertiblePut;
 import com.lbry.database.util.ArrayHelper;
+import com.lbry.database.values.ActiveAmountValue;
 import com.lbry.database.values.ClaimTakeoverValue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDBException;
+import org.rocksdb.RocksIterator;
+import org.rocksdb.Slice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -28,7 +39,6 @@ public class RevertablePrefixDBTest{
     @BeforeAll
     public void setUp() throws IOException,RocksDBException{
         this.tmpDir = Files.createTempDirectory("tmp").toFile();
-        System.err.println(this.tmpDir);
         this.database = new PrefixDB(this.tmpDir.getAbsolutePath(),32);
     }
 
@@ -148,6 +158,77 @@ public class RevertablePrefixDBTest{
     public void testHubDatabaseIterator(){}
 
     @Test
-    public void testHubDatabaseIteratorStartStop(){}
+    public void testHubDatabaseIteratorStartStop() throws RocksDBException{
+        int txNum = 101;
+
+        for(int x=0;x<255;x++){
+            byte[] claimHash = ArrayHelper.fill(new byte[20],(byte) x);
+            final int txNumInner = txNum;
+            this.database.active_amount.stashPut(new ActiveAmountKey(){{
+                this.claim_hash = claimHash;
+                this.txo_type = 1;
+                this.activation_height = 200;
+                this.tx_num = txNumInner;
+                this.position = 1;
+            }},new ActiveAmountValue(){{
+                this.amount = 100000;
+            }});
+            this.database.active_amount.stashPut(new ActiveAmountKey(){{
+                this.claim_hash = claimHash;
+                this.txo_type = 1;
+                this.activation_height = 201;
+                this.tx_num = txNumInner+1;
+                this.position = 1;
+            }},new ActiveAmountValue(){{
+                this.amount = 200000;
+            }});
+            this.database.active_amount.stashPut(new ActiveAmountKey(){{
+                this.claim_hash = claimHash;
+                this.txo_type = 1;
+                this.activation_height = 202;
+                this.tx_num = txNumInner+2;
+                this.position = 1;
+            }},new ActiveAmountValue(){{
+                this.amount = 300000;
+            }});
+            txNum += 3;
+        }
+        this.database.unsafeCommit();
+
+        BiFunction<byte[],Integer,Long> getActiveAmountAsOfHeight = (claimHash,height) -> {
+            try{
+                ReadOptions readOptions = new ReadOptions().setPrefixSameAsStart(true).setTotalOrderSeek(true);
+                RocksIterator iterator = this.database.active_amount.iterate(readOptions);
+                iterator.seek(ByteBuffer.allocate(1+20+1+4).order(ByteOrder.BIG_ENDIAN).put(this.database.active_amount.prefix().getValue()).put(claimHash).put((byte) 1).putInt(0));
+                byte[] stop = ByteBuffer.allocate(1+20+1+4).order(ByteOrder.BIG_ENDIAN).put(this.database.active_amount.prefix().getValue()).put(claimHash).put((byte) 1).putInt(height).array();
+                byte[] latestValue = null;
+                while(iterator.isValid()){
+                    if(ByteBuffer.wrap(iterator.key(),0,1+20+1).equals(ByteBuffer.wrap(stop,0,1+20+1))){
+                        int compareStop = ByteBuffer.wrap(iterator.key(),0,1+20+1+4).compareTo(ByteBuffer.wrap(stop));
+                        if(compareStop>0){
+                            break;
+                        }
+                        latestValue = iterator.value();
+                    }
+                    iterator.next();
+                }
+                return latestValue!=null?this.database.active_amount.unpackValue(latestValue).amount:0;
+            }catch(RocksDBException e){
+                e.printStackTrace();
+            }
+            return 0L;
+        };
+
+        for(int x=0;x<255;x++){
+            byte[] claimHash = ArrayHelper.fill(new byte[20],(byte) x);
+
+            assertEquals(300000,getActiveAmountAsOfHeight.apply(claimHash,300));
+            assertEquals(300000,getActiveAmountAsOfHeight.apply(claimHash,203));
+            assertEquals(300000,getActiveAmountAsOfHeight.apply(claimHash,202));
+            assertEquals(200000,getActiveAmountAsOfHeight.apply(claimHash,201));
+            assertEquals(100000,getActiveAmountAsOfHeight.apply(claimHash,200));
+            assertEquals(0,getActiveAmountAsOfHeight.apply(claimHash,199));
+        }
+    }
 
 }
