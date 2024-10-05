@@ -1,7 +1,6 @@
 package com.lbry.database.rows;
 
 import com.lbry.database.Prefix;
-import com.lbry.database.PrefixDB;
 import com.lbry.database.keys.KeyInterface;
 import com.lbry.database.revert.RevertibleOperationStack;
 import com.lbry.database.values.DBState;
@@ -55,7 +54,9 @@ public class DBStatePrefixRow extends PrefixRow<KeyInterface,DBState>{
 
     @Override
     public DBState unpackValue(byte[] value){
-        int height = ByteBuffer.wrap(value).position(32).order(ByteOrder.BIG_ENDIAN).getInt();
+        ByteBuffer bbHeight = ByteBuffer.wrap(value).order(ByteOrder.BIG_ENDIAN);
+        bbHeight.position(32);
+        int height = bbHeight.getInt();
         if(value.length==94){
             value = ByteBuffer.allocate(value.length+4).order(ByteOrder.BIG_ENDIAN).put(value).putInt(height).array();
         }
