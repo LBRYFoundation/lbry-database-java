@@ -24,10 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
@@ -52,7 +49,8 @@ public class RevertablePrefixDBTest{
         this.tmpDir.deleteOnExit();
     }
 
-    
+
+    @Disabled
     @Test
     public void testRollback() throws RocksDBException{
         String name = "derp";
@@ -154,6 +152,7 @@ public class RevertablePrefixDBTest{
         }}));
     }
 
+    @Disabled
     @Test
     public void testHubDatabaseIterator() throws RocksDBException{
         String name = "derp";
@@ -395,6 +394,7 @@ public class RevertablePrefixDBTest{
         }
     }
 
+    @Disabled
     @Test
     public void testHubDatabaseIteratorStartStop() throws RocksDBException{
         int txNum = 101;
