@@ -1,7 +1,11 @@
 package com.lbry.database.tests;
 
 import com.lbry.database.keys.ClaimToTXOKey;
-import com.lbry.database.revert.*;
+import com.lbry.database.revert.OperationStackIntegrityException;
+import com.lbry.database.revert.RevertibleDelete;
+import com.lbry.database.revert.RevertibleOperation;
+import com.lbry.database.revert.RevertibleOperationStack;
+import com.lbry.database.revert.RevertiblePut;
 import com.lbry.database.rows.ClaimToTXOPrefixRow;
 import com.lbry.database.util.MapHelper;
 import com.lbry.database.values.ClaimToTXOValue;
@@ -56,6 +60,7 @@ public class RevertibleOperationStackTest {
     }
 
     public void processStack(){
+        System.err.println("PS: "+this.stack.iterate());
         for(RevertibleOperation operation : this.stack.iterate()){
             if(operation.isPut()){
                 byte[] savedKey = MapHelper.getKey(this.fakeDatabase,operation.getKey());
@@ -69,6 +74,12 @@ public class RevertibleOperationStackTest {
     }
 
     public void update(byte[] key1,byte[] value1,byte[] key2,byte[] value2){
+//        System.err.println("UPD: DEL("+key1+" -> "+value1+") ==> PUT("+key2+" -> "+value2+")");
+       // System.err.println("UPD: DEL("+new ClaimToTXOPrefixRow(null,null,null).unpackKey(key1)+" -> "+new ClaimToTXOPrefixRow(null,null,null).unpackValue(value1).name+") ==> PUT("+new ClaimToTXOPrefixRow(null,null,null).unpackKey(key2)+" -> "+new ClaimToTXOPrefixRow(null,null,null).unpackValue(value2).name+")");
+        System.err.println("UPD: DEL(-> "+new ClaimToTXOPrefixRow(null,null,null).unpackValue(value1).name+") ==> PUT(-> "+new ClaimToTXOPrefixRow(null,null,null).unpackValue(value2).name+")");
+//        System.err.println("INV: DEL("+key2+" -> "+value2+") ==> PUT("+key1+" -> "+value1+")");
+        //System.err.println("INV: DEL("+new ClaimToTXOPrefixRow(null,null,null).unpackKey(key2)+" -> "+new ClaimToTXOPrefixRow(null,null,null).unpackValue(value2).name+") ==> PUT("+new ClaimToTXOPrefixRow(null,null,null).unpackKey(key1)+" -> "+new ClaimToTXOPrefixRow(null,null,null).unpackValue(value1).name+")");
+//        System.err.println();
         this.stack.appendOperation(new RevertibleDelete(key1,value1));
         this.stack.appendOperation(new RevertiblePut(key2,value2));
     }
@@ -140,7 +151,7 @@ public class RevertibleOperationStackTest {
         assertEquals(1,this.stack.length());
 
         this.processStack();
-        assertEquals(this.fakeDatabase,new HashMap<byte[],byte[]>(){{this.put(key2,val3);}});
+        assertEquals(new HashMap<byte[],byte[]>(){{this.put(key2,val3);}},this.fakeDatabase);
 
         // Check that we can't put on top of the existing stored value.
         assertThrows(OperationStackIntegrityException.class,() -> this.stack.appendOperation(new RevertiblePut(key2,val1)));
@@ -155,7 +166,7 @@ public class RevertibleOperationStackTest {
         assertEquals(2,this.stack.length());
 
         this.processStack();
-        assertEquals(this.fakeDatabase,new HashMap<byte[],byte[]>(){{this.put(key2,val1);}});
+        assertEquals(new HashMap<byte[],byte[]>(){{this.put(key2,val1);}},this.fakeDatabase);
 
         this.update(key2,val1,key2,val2);
         assertEquals(2,this.stack.length());
@@ -170,21 +181,33 @@ public class RevertibleOperationStackTest {
         this.stack.appendOperation(new RevertibleDelete(key2,val3));
         this.processStack();
         this.processStack();
-        assertEquals(this.fakeDatabase,new HashMap<>());
+        assertEquals(new HashMap<>(),this.fakeDatabase);
 
         this.stack.appendOperation(new RevertiblePut(key2,val3));
         this.processStack();
         assertThrows(OperationStackIntegrityException.class,() -> this.update(key2,val2,key2,val2));
 
         this.update(key2,val3,key2,val2);
-        assertEquals(this.fakeDatabase,new HashMap<byte[],byte[]>(){{this.put(key2,val3);}});
+        assertEquals(new HashMap<byte[],byte[]>(){{this.put(key2,val3);}},this.fakeDatabase);
         byte[] undo = this.stack.getUndoOperations();
         this.processStack();
-        this.stack.validateAndApplyStashedOperations();
-        assertEquals(this.fakeDatabase,new HashMap<byte[],byte[]>(){{this.put(key2,val2);}});
+        assertEquals(new HashMap<byte[],byte[]>(){{this.put(key2,val2);}},this.fakeDatabase);
+
+
+        System.err.println("VAL1: "+val1);
+        System.err.println("VAL2: "+val2);
+        System.err.println("VAL3: "+val3);
+
+        System.err.println("BEFORE APPLY: "+this.fakeDatabase);
+        System.err.println("BEFORE APPLY: "+this.stack.iterate());
         this.stack.applyPackedUndoOperations(undo);
+        System.err.println("AFTER APPLY: "+this.fakeDatabase);
+        System.err.println("AFTER APPLY: "+this.stack.iterate());
         this.processStack();
-        //TODO FIX: assertEquals(this.fakeDatabase,new HashMap<byte[],byte[]>(){{this.put(key2,val3);}});
+        System.err.println("FINAL: "+this.fakeDatabase);
+        System.err.println("FINAL: "+this.stack.iterate());
+        //assertEquals(this.fakeDatabase,new HashMap<byte[],byte[]>(){{this.put(key2,val2);}});//WRONG ONE
+        //assertEquals(new HashMap<byte[],byte[]>(){{this.put(key2,val3);}},this.fakeDatabase);
     }
 
 }

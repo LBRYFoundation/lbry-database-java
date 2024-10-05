@@ -55,7 +55,7 @@ public class DBStatePrefixRow extends PrefixRow<KeyInterface,DBState>{
 
     @Override
     public DBState unpackValue(byte[] value){
-        int height = ByteBuffer.wrap(value).order(ByteOrder.BIG_ENDIAN).position(32).getInt();
+        int height = ByteBuffer.wrap(value).position(32).order(ByteOrder.BIG_ENDIAN).getInt();
         if(value.length==94){
             value = ByteBuffer.allocate(value.length+4).order(ByteOrder.BIG_ENDIAN).put(value).putInt(height).array();
         }
